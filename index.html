@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DAVE — Skin & Nutrition Wellness</title>
+<style>
+:root{--bg:#f5f7f4;--card:#fff;--ink:#17201b;--muted:#68736d;--accent:#315c4b;--soft:#e7eee9;--line:#dfe6e1}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:22px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}.logo{font-weight:800;letter-spacing:.18em;font-size:22px}
+.progress{font-size:12px;color:var(--muted)} h1{font-size:34px;line-height:1.05;margin:12px 0} h2{font-size:23px;margin:10px 0 18px} p{color:var(--muted);line-height:1.5}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;margin:14px 0;box-shadow:0 6px 24px #17201b08}
+button{width:100%;border:0;border-radius:16px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;margin-top:12px}
+button.secondary{background:var(--soft);color:var(--ink)} button.link{background:transparent;color:var(--accent);padding:8px}
+label{display:block;font-weight:700;margin:18px 0 8px} select,input{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:15px}
+.photo{height:250px;border-radius:22px;background:#dfe8e2;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:cover}.pill{display:inline-block;background:var(--soft);padding:8px 12px;border-radius:999px;font-size:13px;margin:4px}
+.metric{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.metric:last-child{border-bottom:0}.score{font-size:27px;font-weight:800}.bar{height:8px;background:var(--soft);border-radius:99px;margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.food{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}.food:last-child{border:0}.emoji{font-size:25px}
+.small{font-size:12px}.notice{font-size:12px;background:#f0f3f1;padding:12px;border-radius:14px;color:#59645e}
+.hidden{display:none}.day{font-weight:800;margin-top:18px}.meal{margin:7px 0;color:#3d4842}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">DAVE</div><div class="progress" id="progress"></div></header>
+<main id="app"></main>
+</div>
+<script>
+const nutrients={
+  vitC:{name:"Alimenti ricchi di vitamina C",emoji:"🥝",foods:["Kiwi","Peperoni","Fragole","Agrumi","Broccoli"],why:"DAVE ha rilevato un basso consumo dichiarato di frutta e/o verdure."},
+  omega3:{name:"Fonti alimentari di omega-3",emoji:"🐟",foods:["Salmone","Sardine","Sgombro","Noci","Semi di lino/chia"],why:"Il tuo profilo indica che il pesce e/o alcune fonti vegetali di grassi sono poco frequenti."},
+  zinc:{name:"Alimenti ricchi di zinco",emoji:"🌰",foods:["Legumi","Uova","Pesce","Carne","Frutta secca"],why:"Il tuo profilo mostra poche fonti alimentari tra quelle considerate nel questionario."},
+  color:{name:"Verdure colorate e varietà",emoji:"🥕",foods:["Carote","Peperoni","Pomodori","Spinaci","Broccoli"],why:"La varietà di verdure dichiarata è bassa."},
+  fiber:{name:"Fonti di fibre",emoji:"🌾",foods:["Avena","Legumi","Frutta","Verdure","Cereali integrali"],why:"Il consumo dichiarato di fibre alimentari è basso."},
+  protein:{name:"Fonti di proteine",emoji:"🥚",foods:["Uova","Pesce","Yogurt","Legumi","Pollo"],why:"Il profilo alimentare può beneficiare di una maggiore varietà di fonti proteiche."},
+  hydration:{name:"Idratazione",emoji:"💧",foods:["Acqua","Frutta","Verdure","Zuppe"],why:"Hai indicato un'assunzione di liquidi che potrebbe essere migliorata."}
+};
+let state={step:0,photo:null,answers:{}};
+const app=document.getElementById("app"), prog=document.getElementById("progress");
+function render(){prog.textContent=state.step?`Step ${state.step} / 5`:""; ({0:home,1:selfie,2:quiz,3:results,4:plan,5:about}[state.step]||home)();}
+function home(){app.innerHTML=`<div style="padding-top:50px"><span class="pill">AI wellness concept</span><h1>Your skin.<br>Your nutrition.<br>Your lifestyle.</h1><p>DAVE crea un profilo personalizzato partendo da una foto, dalle tue abitudini e dai tuoi obiettivi di benessere.</p><div class="card"><b>In 5 minuti</b><p>Selfie → questionario → profilo → focus nutrizionale → piano di 7 giorni.</p></div><button onclick="go(1)">START MY CHECK</button><button class="secondary" onclick="go(5)">How DAVE works</button></div>`}
+function selfie(){app.innerHTML=`<h2>Let's get your skin profile</h2><p>Scatta una foto in buona luce, senza filtri. Nel prototipo la foto viene usata solo per il tuo percorso locale.</p><div class="photo" id="photoBox">${state.photo?`<img src="${state.photo}">`:`<div>📷<br><br>Anteprima selfie</div>`}</div><input id="photoInput" type="file" accept="image/*" capture="user" style="margin-top:12px"><button onclick="savePhoto()">CONTINUE</button><div class="notice">DAVE non diagnostica carenze vitaminiche né malattie dalla foto. Le caratteristiche visibili sono solo indicatori di wellness.</div>`}
+function savePhoto(){let f=document.getElementById("photoInput").files[0];if(f){let r=new FileReader();r.onload=()=>{state.photo=r.result;go(2)};r.readAsDataURL(f)}else go(2)}
+const qs=[
+["age","Età","select",["18–24","25–34","35–44","45–54","55+"]],
+["diet","Stile alimentare","select",["Onnivoro","Mediterraneo","Vegetariano","Vegano","Altro"]],
+["fruit","Frutta","select",["Quasi mai","1–2 volte/settimana","3–6 volte/settimana","Ogni giorno"]],
+["veg","Verdure","select",["Quasi mai","1–2 volte/settimana","3–6 volte/settimana","Ogni giorno"]],
+["fish","Pesce","select",["Mai","1 volta/settimana","2 volte/settimana","3+ volte/settimana"]],
+["legumes","Legumi","select",["Mai","1 volta/settimana","2 volte/settimana","3+ volte/settimana"]],
+["nuts","Frutta secca/semi","select",["Mai","1 volta/settimana","2–3 volte/settimana","Quasi ogni giorno"]],
+["whole","Cereali integrali/avena","select",["Mai","1 volta/settimana","2–3 volte/settimana","Quasi ogni giorno"]],
+["water","Acqua/liquidi","select",["Poco","Circa 1 L","1–1,5 L","Più di 1,5 L"]],
+["sleep","Sonno medio","select",["<5 ore","5–6 ore","7–8 ore",">8 ore"]],
+["activity","Attività fisica","select",["Quasi mai","1 volta/settimana","2–3 volte/settimana","4+ volte/settimana"]],
+["goal","Obiettivo principale","select",["Luminosità","Idratazione apparente","Uniformità","Texture","Stile di vita"]]
+];
+function quiz(){let h=`<h2>Tell DAVE about you</h2><p>Rispondi in modo semplice: il risultato è un orientamento di wellness, non una diagnosi.</p><form id="form">`;qs.forEach(q=>{h+=`<label>${q[1]}</label><select name="${q[0]}" required><option value="">Scegli...</option>${q[3].map((x,i)=>`<option value="${i}">${x}</option>`).join("")}</select>`});h+=`<button type="submit">BUILD MY PROFILE</button></form>`;app.innerHTML=h;document.getElementById("form").onsubmit=e=>{e.preventDefault();new FormData(e.target).forEach((v,k)=>state.answers[k]=+v);go(3)}}
+function results(){let a=state.answers;let focus=[];if((a.fruit??3)<=1||(a.veg??3)<=1)focus.push("vitC","color");if((a.fish??3)<=1)focus.push("omega3");if((a.legumes??3)<=1||(a.nuts??3)<=1)focus.push("zinc");if((a.whole??3)<=1)focus.push("fiber");if((a.water??3)<=1)focus.push("hydration");if(focus.length<3)focus.push("protein");focus=[...new Set(focus)].slice(0,5);
+let base=72+((a.fruit||0)+(a.veg||0)+(a.fish||0)+(a.legumes||0)+(a.nuts||0));let score=Math.max(55,Math.min(94,base));
+let metrics=[["✨","Luminosità apparente",Math.min(95,score+4)],["🎨","Uniformità apparente",Math.min(95,score+7)],["🔬","Texture apparente",Math.max(55,score-4)],["💧","Secchezza/lucidità apparente",Math.max(55,score-1)]];
+app.innerHTML=`<h2>Your DAVE Profile</h2><div class="card" style="text-align:center"><div class="score">${score}/100</div><p>Skin Wellness Score</p>${metrics.map(m=>`<div class="metric"><span>${m[0]} ${m[1]}</span><b>${m[2]}</b></div>`).join("")}</div><h2>Your Nutrition Focus</h2>${focus.map(k=>`<div class="card"><div class="food"><div class="emoji">${nutrients[k].emoji}</div><div><b>${nutrients[k].name}</b><p class="small">${nutrients[k].why}</p><p><b>Prova:</b> ${nutrients[k].foods.join(" · ")}</p></div></div></div>`).join("")}<div class="notice">Il punteggio e i focus sono una dimostrazione del prototipo e non indicano carenze nutrizionali. Per sospette carenze o problemi cutanei, rivolgersi a un professionista sanitario.</div><button onclick="go(4)">CREATE MY 7-DAY PLAN</button>`;state.focus=focus}
+function plan(){let f=state.focus||["vitC","omega3","color"];let foods=f.flatMap(k=>nutrients[k].foods).slice(0,10);let days=["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"];let meals=[["Yogurt + frutta + noci","Cereale integrale + legumi + verdure","Pesce + verdure + patate"],["Avena + kiwi + semi","Riso + pollo + peperoni","Uova + pane integrale + insalata"],["Yogurt + frutti di bosco","Pasta integrale + ceci + verdure","Salmone + broccoli + cereali"],["Pane integrale + uovo + frutta","Farro + legumi + pomodori","Pesce azzurro + verdure"],["Avena + frutta + noci","Riso integrale + verdure + proteine","Legumi + verdure + pane integrale"],["Yogurt + frutta + semi","Pasta + pesce + verdure","Pollo + patate + insalata"],["Uova + pane integrale + frutta","Cereali + legumi + verdure","Pesce + broccoli + riso"]];app.innerHTML=`<h2>Your 7-Day Plan</h2><p>Una bozza alimentare orientativa basata sulle risposte inserite.</p>${days.map((d,i)=>`<div class="card"><div class="day">${d}</div><div class="meal">☀️ ${meals[i][0]}</div><div class="meal">🥗 ${meals[i][1]}</div><div class="meal">🌙 ${meals[i][2]}</div></div>`).join("")}<div class="card"><h3>🛒 Shopping list</h3><p>${[...new Set(foods)].join(" · ")}</p></div><button onclick="go(0)">START AGAIN</button><div class="notice">Questo piano è un prototipo di wellness e non sostituisce un piano dietetico professionale. Allergie, patologie, gravidanza, disturbi alimentari o esigenze cliniche richiedono valutazione professionale.</div>`}
+function about(){app.innerHTML=`<h2>How DAVE works</h2><div class="card"><b>👁️ Skin</b><p>Nel prodotto completo, DAVE potrà analizzare caratteristiche visibili della pelle in condizioni standardizzate.</p></div><div class="card"><b>🥗 Nutrition</b><p>Il questionario identifica aree della dieta da migliorare e propone alimenti, non diagnosi di carenze.</p></div><div class="card"><b>🧠 Personalization</b><p>DAVE combina obiettivi, abitudini e preferenze per creare un percorso personalizzato.</p></div><div class="notice">Le funzionalità di questo prototipo sono illustrative. Prima di un lancio commerciale dovremo validare scientificamente le regole, privacy, sicurezza e inquadramento normativo.</div><button onclick="go(0)">BACK</button>`}
+function go(n){state.step=n;render()} render();
+</script>
+</body></html>
